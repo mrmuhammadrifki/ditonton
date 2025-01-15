@@ -12,8 +12,8 @@ Pastikan untuk memeriksa kembali seluruh hasil testing pada submissionmu sebelum
 [![Codemagic build status](https://api.codemagic.io/apps/67847ed8f167d22fec8ca369/release-workflow/status_badge.svg)]
 
 <p align="center">
-  <img src="images/gambar_1.png" width="200">
-  <img src="images/gambar_2.png" width="200">
+  <img src="images/gambar_1.png" width="400">
+  <img src="images/gambar_2.png" width="400">
 </p>
 
 

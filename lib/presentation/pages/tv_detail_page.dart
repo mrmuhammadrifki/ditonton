@@ -7,6 +7,7 @@ import 'package:ditonton/presentation/bloc/tv_detail/tv_detail_bloc.dart';
 import 'package:ditonton/presentation/bloc/tv_detail/tv_detail_event.dart';
 import 'package:ditonton/presentation/bloc/tv_detail/tv_detail_state.dart';
 import 'package:ditonton/utils/state_enum.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';

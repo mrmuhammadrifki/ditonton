@@ -11,9 +11,9 @@ Pastikan untuk memeriksa kembali seluruh hasil testing pada submissionmu sebelum
 
 [![Codemagic build status](https://api.codemagic.io/apps/67847ed8f167d22fec8ca369/release-workflow/status_badge.svg)]
 
-[![Build Code Magic](https://drive.google.com/file/d/1qc5fiWb1EJLw2oqVWBZCrSWUBeG_R3fI/view?usp=sharing)]
+[![Build Code Magic](https://drive.google.com/file/d/1cufRd9ZkcmlDs-4JyGjSRwTk3IQBLdFG/view)]
 
-[![Crashlytics](https://drive.google.com/file/d/1cufRd9ZkcmlDs-4JyGjSRwTk3IQBLdFG/view?usp=sharing)]
+[![Crashlytics](https://drive.google.com/file/d/1cufRd9ZkcmlDs-4JyGjSRwTk3IQBLdFG/view?)]
 
 
 ## Tips Submission Akhir

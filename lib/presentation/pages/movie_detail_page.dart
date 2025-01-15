@@ -3,11 +3,13 @@ import 'package:ditonton/common/constants.dart';
 import 'package:ditonton/domain/entities/genre.dart';
 import 'package:ditonton/domain/entities/movie.dart';
 import 'package:ditonton/domain/entities/movie_detail.dart';
-import 'package:ditonton/presentation/provider/movie_detail_notifier.dart';
-import 'package:ditonton/common/state_enum.dart';
+import 'package:ditonton/presentation/bloc/movie_detail/movie_detail_event.dart';
+import 'package:ditonton/presentation/bloc/movie_detail/movie_detail_state.dart';
+import 'package:ditonton/presentation/bloc/movie_detail/movie_detail_bloc.dart';
+import 'package:ditonton/utils/state_enum.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:provider/provider.dart';
 
 class MovieDetailPage extends StatefulWidget {
   static const ROUTE_NAME = '/detail_movie';
@@ -23,33 +25,52 @@ class _MovieDetailPageState extends State<MovieDetailPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      Provider.of<MovieDetailNotifier>(context, listen: false)
-          .fetchMovieDetail(widget.id);
-      Provider.of<MovieDetailNotifier>(context, listen: false)
-          .loadWatchlistStatus(widget.id);
-    });
+    Future.microtask(
+      () => context.read<MovieDetailBloc>().add(
+            FetchMovieDetail(widget.id),
+          ),
+    );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Consumer<MovieDetailNotifier>(
-        builder: (context, provider, child) {
-          if (provider.movieState == RequestState.Loading) {
+      body: BlocConsumer<MovieDetailBloc, MovieDetailState>(
+        listener: (context, state) {
+          if (state.message.isNotEmpty) {
+            if (state.message == 'Added to Watchlist' ||
+                state.message == 'Removed from Watchlist') {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(content: Text(state.message));
+                },
+              );
+            }
+            context.read<MovieDetailBloc>().add(ResetMessage());
+          }
+        },
+        builder: (context, state) {
+          if (state.movieDetailState == StateEnum.Loading) {
             return Center(
               child: CircularProgressIndicator(),
             );
-          } else if (provider.movieState == RequestState.Loaded) {
-            final tv = provider.movie;
+          } else if (state.movieDetailState == StateEnum.HasData) {
             return SafeArea(
               child: DetailContent(
-                tv,
-                provider.movieRecommendations,
-                provider.isAddedToWatchlist,
+                state.movieDetail,
+                state.movieRecommendations,
+                state.isAddedToWatchlist,
               ),
             );
+          } else if (state.movieDetailState == StateEnum.Error) {
+            return Center(child: Text(state.message));
           } else {
-            return Text(provider.message);
+            return Center(child: Text("No data available"));
           }
         },
       ),
@@ -105,40 +126,15 @@ class DetailContent extends StatelessWidget {
                               style: kHeading5,
                             ),
                             FilledButton(
-                              onPressed: () async {
+                              onPressed: () {
                                 if (!isAddedWatchlist) {
-                                  await Provider.of<MovieDetailNotifier>(
-                                          context,
-                                          listen: false)
-                                      .addWatchlist(movie);
+                                  context
+                                      .read<MovieDetailBloc>()
+                                      .add(AddToWatchlist(movie));
                                 } else {
-                                  await Provider.of<MovieDetailNotifier>(
-                                          context,
-                                          listen: false)
-                                      .removeFromWatchlist(movie);
-                                }
-
-                                final message =
-                                    Provider.of<MovieDetailNotifier>(context,
-                                            listen: false)
-                                        .watchlistMessage;
-
-                                if (message ==
-                                        MovieDetailNotifier
-                                            .watchlistAddSuccessMessage ||
-                                    message ==
-                                        MovieDetailNotifier
-                                            .watchlistRemoveSuccessMessage) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(message)));
-                                } else {
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          content: Text(message),
-                                        );
-                                      });
+                                  context
+                                      .read<MovieDetailBloc>()
+                                      .add(RemoveFromWatchlist(movie));
                                 }
                               },
                               child: Row(
@@ -154,7 +150,7 @@ class DetailContent extends StatelessWidget {
                             Text(
                               _showGenres(movie.genres),
                             ),
-                            Text(
+                              Text(
                               _showDuration(movie.runtime)
                             ),
                             Row(
@@ -184,18 +180,18 @@ class DetailContent extends StatelessWidget {
                               'Recommendations',
                               style: kHeading6,
                             ),
-                            Consumer<MovieDetailNotifier>(
-                              builder: (context, data, child) {
-                                if (data.recommendationState ==
-                                    RequestState.Loading) {
+                            BlocBuilder<MovieDetailBloc, MovieDetailState>(
+                              builder: (context, state) {
+                                if (state.movieRecommendationsState ==
+                                    StateEnum.Loading) {
                                   return Center(
                                     child: CircularProgressIndicator(),
                                   );
-                                } else if (data.recommendationState ==
-                                    RequestState.Error) {
-                                  return Text(data.message);
-                                } else if (data.recommendationState ==
-                                    RequestState.Loaded) {
+                                } else if (state.movieRecommendationsState ==
+                                    StateEnum.Error) {
+                                  return Text(state.message);
+                                } else if (state.movieRecommendationsState ==
+                                    StateEnum.HasData) {
                                   return Container(
                                     height: 150,
                                     child: ListView.builder(
@@ -291,7 +287,7 @@ class DetailContent extends StatelessWidget {
     return result.substring(0, result.length - 2);
   }
 
-  String _showDuration(int runtime) {
+   String _showDuration(int runtime) {
     final int hours = runtime ~/ 60;
     final int minutes = runtime % 60;
 
